@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { v4 as uuid } from "uuid";
+import { connectDB } from "./db.js";
+import User from "./models/User.js";
 
 const app = express();
 const PORT = 5000;
@@ -9,17 +10,18 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-/* ---------- In-memory data store ---------- */
-let users = [];
+/* ---------- DB ---------- */
+connectDB();
 
 /* ---------- GET all users ---------- */
-app.get("/api/users", (req, res) => {
+app.get("/api/users", async (req, res) => {
+  const users = await User.find();
   res.status(200).json(users);
 });
 
 /* ---------- GET single user ---------- */
-app.get("/api/users/:id", (req, res) => {
-  const user = users.find(u => u.id === req.params.id);
+app.get("/api/users/:id", async (req, res) => {
+  const user = await User.findById(req.params.id);
 
   if (!user) {
     return res.status(404).json({ error: "User not found" });
@@ -29,7 +31,7 @@ app.get("/api/users/:id", (req, res) => {
 });
 
 /* ---------- POST create user ---------- */
-app.post("/api/users", (req, res) => {
+app.post("/api/users", async (req, res) => {
   const { name, email, role } = req.body;
 
   if (!name || !email) {
@@ -38,28 +40,16 @@ app.post("/api/users", (req, res) => {
     });
   }
 
-  const newUser = {
-    id: uuid(),
-    name,
-    email,
-    role: role || "User",
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-
-  users.push(newUser);
-
-  res.status(201).json(newUser);
+  try {
+    const user = await User.create({ name, email, role });
+    res.status(201).json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /* ---------- PUT full replace ---------- */
-app.put("/api/users/:id", (req, res) => {
-  const index = users.findIndex(u => u.id === req.params.id);
-
-  if (index === -1) {
-    return res.status(404).json({ error: "User not found" });
-  }
-
+app.put("/api/users/:id", async (req, res) => {
   const { name, email, role } = req.body;
 
   if (!name || !email || !role) {
@@ -68,49 +58,46 @@ app.put("/api/users/:id", (req, res) => {
     });
   }
 
-  users[index] = {
-    id: users[index].id,
-    name,
-    email,
-    role,
-    createdAt: users[index].createdAt,
-    updatedAt: new Date()
-  };
-
-  res.status(200).json(users[index]);
-});
-
-/* ---------- PATCH partial update ---------- */
-app.patch("/api/users/:id", (req, res) => {
-  const user = users.find(u => u.id === req.params.id);
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { name, email, role },
+    { new: true, overwrite: true }
+  );
 
   if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
 
-  Object.keys(req.body).forEach(key => {
-    user[key] = req.body[key];
-  });
+  res.status(200).json(user);
+});
 
-  user.updatedAt = new Date();
+/* ---------- PATCH partial update ---------- */
+app.patch("/api/users/:id", async (req, res) => {
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
 
   res.status(200).json(user);
 });
 
-/* ---------- DELETE user ---------- */
-app.delete("/api/users/:id", (req, res) => {
-  const index = users.findIndex(u => u.id === req.params.id);
+/* ---------- DELETE ---------- */
+app.delete("/api/users/:id", async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
 
-  if (index === -1) {
+  if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
-
-  users.splice(index, 1);
 
   res.status(204).send();
 });
 
 /* ---------- Server ---------- */
 app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+  console.log(`Backend running on port ${PORT}`);
 });

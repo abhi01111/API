@@ -1,18 +1,48 @@
 import "../styles/dark.css";
 import { useState } from "react";
 
+const BASE_URL = "http://localhost:5000";
+
 export default function Playground() {
   const [method, setMethod] = useState("GET");
+  const [endpoint, setEndpoint] = useState("/api/users");
+  const [body, setBody] = useState("");
+  const [response, setResponse] = useState("");
+  const [status, setStatus] = useState("");
+
+  const sendRequest = async () => {
+    try {
+      const options = {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      };
+
+      if (method !== "GET" && method !== "DELETE" && body) {
+        options.body = body;
+      }
+
+      const res = await fetch(`${BASE_URL}${endpoint}`, options);
+      const text = await res.text();
+
+      setStatus(`${res.status} ${res.statusText}`);
+      setResponse(text || "(no response body)");
+    } catch (err) {
+      setStatus("ERROR");
+      setResponse(err.message);
+    }
+  };
 
   return (
     <div className="dark">
       <div className="page">
         <h2>API Playground</h2>
         <p style={{ color: "#94a3b8" }}>
-          Manually test HTTP methods like a developer tool.
+          Send real HTTP requests to the backend.
         </p>
 
-        {/* Request */}
+        {/* Request Panel */}
         <div className="panel">
           <h4>Request</h4>
 
@@ -26,23 +56,30 @@ export default function Playground() {
           </select>
 
           <label>Endpoint</label>
-          <input placeholder="/api/users" />
+          <input
+            value={endpoint}
+            onChange={e => setEndpoint(e.target.value)}
+            placeholder="/api/users"
+          />
 
           <label>Request Body (JSON)</label>
-          <textarea rows="6" placeholder='{"key":"value"}' />
+          <textarea
+            rows="6"
+            value={body}
+            onChange={e => setBody(e.target.value)}
+            placeholder='{"name":"Abhi","email":"abhi@test.com","role":"DevOps"}'
+          />
 
-          <button>Send Request</button>
+          <button onClick={sendRequest}>Send Request</button>
         </div>
 
-        {/* Response */}
+        {/* Response Panel */}
         <div className="panel">
           <h4>Response</h4>
           <pre>
-Status: 200 OK
+Status: {status}
 
-{`{
-  "message": "Response will appear here"
-}`}
+{response}
           </pre>
         </div>
       </div>
