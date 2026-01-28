@@ -47,3 +47,8 @@ body {
 .card h3 {
   margin-top: 0;
 }
+
+button {
+  border-radius: 6px;
+  font-weight: 500;
+}

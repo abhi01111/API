@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 export const connectDB = async () => {
   try {
     await mongoose.connect(
-      process.env.MONGO_URL || "mongodb://localhost:27017/http_methods_lab"
+      process.env.MONGO_URL || "mongodb://mongo:27017/http_methods_lab"
     );
 
     console.log("MongoDB connected");
