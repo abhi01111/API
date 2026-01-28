@@ -1,0 +1,49 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.navbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 14px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar h3 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.links a {
+  margin-left: 20px;
+  text-decoration: none;
+  color: #334155;
+  font-weight: 500;
+}
+
+.links a:hover {
+  color: #2563eb;
+}
+
+.page {
+  max-width: 1100px;
+  margin: auto;
+  padding: 48px 24px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.card h3 {
+  margin-top: 0;
+}
